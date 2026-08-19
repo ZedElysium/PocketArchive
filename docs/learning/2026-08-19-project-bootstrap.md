@@ -4,8 +4,8 @@
 - Project: PocketArchive
 - Phase: Project bootstrap
 - Status: 已完成
-- GitHub repository: 暂未创建
-- Commit/PR: 暂未创建
+- GitHub repository: https://github.com/ZedElysium/PocketArchive
+- Commit/PR: https://github.com/ZedElysium/PocketArchive/commit/5540b26
 
 ## 1. 学习目标与职业关联
 
@@ -122,8 +122,8 @@
 
 ## 13. GitHub、README 与简历证据
 
-- GitHub repository: 暂未创建
-- Commit/PR: 暂未创建
+- GitHub repository: https://github.com/ZedElysium/PocketArchive
+- Commit/PR: https://github.com/ZedElysium/PocketArchive/commit/5540b26
 - README: 已创建最小版本，后续补充架构图、截图、演示、测试与性能数据
 - Technical article: 暂未创建
 - Demo: 暂未创建

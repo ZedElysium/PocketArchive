@@ -4,8 +4,8 @@
 - Project: PocketArchive
 - Phase: App shell and empty library
 - Status: 已完成
-- GitHub repository: 暂未创建
-- Commit/PR: 暂未创建
+- GitHub repository: https://github.com/ZedElysium/PocketArchive
+- Commit/PR: https://github.com/ZedElysium/PocketArchive/commit/5540b26
 
 ## 1. 学习目标与职业关联
 
@@ -131,8 +131,8 @@
 
 ## 13. GitHub、README 与简历证据
 
-- GitHub repository: 暂未创建
-- Commit/PR: 暂未创建
+- GitHub repository: https://github.com/ZedElysium/PocketArchive
+- Commit/PR: https://github.com/ZedElysium/PocketArchive/commit/5540b26
 - README: 已更新当前可启动应用壳、功能边界和验证命令
 - Technical article: 暂未创建
 - Demo: 暂未创建

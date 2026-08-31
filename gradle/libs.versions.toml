@@ -5,6 +5,7 @@ compose-bom = "2024.12.01"
 activity-compose = "1.9.3"
 coroutines = "1.9.0"
 hilt = "2.53.1"
+lifecycle = "2.8.7"
 junit = "4.13.2"
 androidx-test-junit = "1.1.5"
 androidx-test-runner = "1.5.2"
@@ -23,6 +24,7 @@ androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "a
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 

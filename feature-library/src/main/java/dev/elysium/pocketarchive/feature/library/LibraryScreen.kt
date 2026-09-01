@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LibraryScreen(
-    importEnabled: Boolean,
-    onImportClick: () -> Unit,
+    state: LibraryUiState,
+    onAction: (LibraryAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -44,8 +44,8 @@ fun LibraryScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             EmptyLibraryContent(
-                importEnabled = importEnabled,
-                onImportClick = onImportClick,
+                importEnabled = state.isImportEnabled,
+                onImportClick = { onAction(LibraryAction.ImportClicked) },
                 modifier = Modifier
                     .widthIn(max = 420.dp)
                     .fillMaxWidth()
@@ -102,8 +102,8 @@ private fun EmptyLibraryContent(
 private fun LibraryScreenPreview() {
     MaterialTheme {
         LibraryScreen(
-            importEnabled = false,
-            onImportClick = {},
+            state = LibraryUiState(),
+            onAction = {},
         )
     }
 }

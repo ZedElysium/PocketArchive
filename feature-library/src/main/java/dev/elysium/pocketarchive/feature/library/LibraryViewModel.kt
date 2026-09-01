@@ -11,4 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 class LibraryViewModel @Inject constructor() : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+
+    fun onAction(action: LibraryAction) {
+        when (action) {
+            LibraryAction.ImportClicked -> Unit
+        }
+    }
 }

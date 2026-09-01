@@ -20,4 +20,11 @@ class LibraryViewModelTest {
     fun uiState_doesNotExposeMutableStateFlow() {
         assertFalse(viewModel.uiState is MutableStateFlow<*>)
     }
+
+    @Test
+    fun importClicked_keepsImportDisabledUntilEffectMilestone() {
+        viewModel.onAction(LibraryAction.ImportClicked)
+
+        assertFalse(viewModel.uiState.value.isImportEnabled)
+    }
 }

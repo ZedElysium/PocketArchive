@@ -11,3 +11,4 @@ captures/
 *.jks
 *.keystore
 .DS_Store
+docs/learning/

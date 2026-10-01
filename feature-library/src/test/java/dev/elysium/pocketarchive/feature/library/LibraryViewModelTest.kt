@@ -15,7 +15,10 @@ class LibraryViewModelTest {
     @Test
     fun initialState_matchesCurrentLibraryCapability() {
         assertEquals(
-            LibraryUiState(isImportEnabled = false),
+            LibraryUiState(
+                isImportEnabled = true,
+                hasSelectedDocument = false,
+            ),
             viewModel.uiState.value,
         )
     }
@@ -26,7 +29,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun importClicked_emitsOpenDocumentPickerAndKeepsState() = runBlocking {
+    fun importClicked_emitsOpenDocumentPickerAndDisablesRepeatedRequests() = runBlocking {
         viewModel.onAction(LibraryAction.ImportClicked)
 
         assertEquals(
@@ -34,6 +37,7 @@ class LibraryViewModelTest {
             viewModel.effects.first(),
         )
         assertFalse(viewModel.uiState.value.isImportEnabled)
+        assertFalse(viewModel.uiState.value.hasSelectedDocument)
     }
 
     @Test
@@ -49,20 +53,54 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun documentPickerFinished_doesNotChangeStateOrEmitEffect() = runBlocking {
-        val initialState = viewModel.uiState.value
+    fun repeatedImportClicks_emitOnlyOneEffect() = runBlocking {
+        viewModel.onAction(LibraryAction.ImportClicked)
+        viewModel.onAction(LibraryAction.ImportClicked)
+
+        assertEquals(
+            LibraryEffect.OpenDocumentPicker,
+            viewModel.effects.first(),
+        )
+        val duplicateEffect = withTimeoutOrNull(100) {
+            viewModel.effects.first()
+        }
+
+        assertNull(duplicateEffect)
+    }
+
+    @Test
+    fun cancelledDocumentPicker_reenablesImportWithoutSelection() = runBlocking {
+        viewModel.onAction(LibraryAction.ImportClicked)
+        viewModel.effects.first()
 
         viewModel.onAction(LibraryAction.DocumentPickerFinished(documentUri = null))
+
+        assertEquals(
+            LibraryUiState(
+                isImportEnabled = true,
+                hasSelectedDocument = false,
+            ),
+            viewModel.uiState.value,
+        )
+    }
+
+    @Test
+    fun selectedDocument_reenablesImportAndMarksPendingSelection() = runBlocking {
+        viewModel.onAction(LibraryAction.ImportClicked)
+        viewModel.effects.first()
+
         viewModel.onAction(
             LibraryAction.DocumentPickerFinished(
                 documentUri = "content://documents/example.pdf",
             ),
         )
 
-        assertEquals(initialState, viewModel.uiState.value)
-        val unexpectedEffect = withTimeoutOrNull(100) {
-            viewModel.effects.first()
-        }
-        assertNull(unexpectedEffect)
+        assertEquals(
+            LibraryUiState(
+                isImportEnabled = true,
+                hasSelectedDocument = true,
+            ),
+            viewModel.uiState.value,
+        )
     }
 }

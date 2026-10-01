@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor() : ViewModel() {
@@ -20,11 +21,32 @@ class LibraryViewModel @Inject constructor() : ViewModel() {
 
     fun onAction(action: LibraryAction) {
         when (action) {
-            LibraryAction.ImportClicked -> {
-                _effects.trySend(LibraryEffect.OpenDocumentPicker)
-            }
+            LibraryAction.ImportClicked -> openDocumentPicker()
+            is LibraryAction.DocumentPickerFinished -> finishDocumentPicker(action.documentUri)
+        }
+    }
 
-            is LibraryAction.DocumentPickerFinished -> Unit
+    private fun openDocumentPicker() {
+        if (!_uiState.value.isImportEnabled) return
+
+        _uiState.update {
+            it.copy(
+                isImportEnabled = false,
+                hasSelectedDocument = false,
+            )
+        }
+
+        if (_effects.trySend(LibraryEffect.OpenDocumentPicker).isFailure) {
+            _uiState.update { it.copy(isImportEnabled = true) }
+        }
+    }
+
+    private fun finishDocumentPicker(documentUri: String?) {
+        _uiState.update {
+            it.copy(
+                isImportEnabled = true,
+                hasSelectedDocument = documentUri != null,
+            )
         }
     }
 }

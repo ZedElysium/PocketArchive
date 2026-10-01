@@ -45,6 +45,7 @@ fun LibraryScreen(
 
             EmptyLibraryContent(
                 importEnabled = state.isImportEnabled,
+                hasSelectedDocument = state.hasSelectedDocument,
                 onImportClick = { onAction(LibraryAction.ImportClicked) },
                 modifier = Modifier
                     .widthIn(max = 420.dp)
@@ -60,6 +61,7 @@ fun LibraryScreen(
 @Composable
 private fun EmptyLibraryContent(
     importEnabled: Boolean,
+    hasSelectedDocument: Boolean,
     onImportClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -85,14 +87,16 @@ private fun EmptyLibraryContent(
         ) {
             Text("导入资料")
         }
-        if (!importEnabled) {
-            Text(
-                text = "导入功能将在下一里程碑接入",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
+        Text(
+            text = when {
+                hasSelectedDocument -> "已选择资料，保存功能将在下一里程碑接入"
+                !importEnabled -> "正在打开系统文件选择器"
+                else -> "当前可选择 PDF 或图片，文件暂不会保存"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

@@ -19,7 +19,7 @@ class LibraryScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun emptyLibrary_showsHonestImportState() {
+    fun emptyLibrary_showsAvailableDocumentPickerState() {
         composeRule.setContent {
             MaterialTheme {
                 LibraryScreen(
@@ -31,8 +31,8 @@ class LibraryScreenTest {
 
         composeRule.onNodeWithText("资料库").assertIsDisplayed()
         composeRule.onNodeWithText("还没有资料").assertIsDisplayed()
-        composeRule.onNodeWithText("导入资料").assertIsNotEnabled()
-        composeRule.onNodeWithText("导入功能将在下一里程碑接入").assertIsDisplayed()
+        composeRule.onNodeWithText("导入资料").assertIsEnabled()
+        composeRule.onNodeWithText("当前可选择 PDF 或图片，文件暂不会保存").assertIsDisplayed()
     }
 
     @Test
@@ -41,7 +41,7 @@ class LibraryScreenTest {
         composeRule.setContent {
             MaterialTheme {
                 LibraryScreen(
-                    state = LibraryUiState(isImportEnabled = true),
+                    state = LibraryUiState(),
                     onAction = { receivedAction = it },
                 )
             }
@@ -54,5 +54,36 @@ class LibraryScreenTest {
         composeRule.runOnIdle {
             assertEquals(LibraryAction.ImportClicked, receivedAction)
         }
+    }
+
+    @Test
+    fun openingDocumentPicker_disablesImportButton() {
+        composeRule.setContent {
+            MaterialTheme {
+                LibraryScreen(
+                    state = LibraryUiState(isImportEnabled = false),
+                    onAction = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("导入资料").assertIsNotEnabled()
+        composeRule.onNodeWithText("正在打开系统文件选择器").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectedDocument_showsPendingSaveState() {
+        composeRule.setContent {
+            MaterialTheme {
+                LibraryScreen(
+                    state = LibraryUiState(hasSelectedDocument = true),
+                    onAction = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("导入资料").assertIsEnabled()
+        composeRule.onNodeWithText("已选择资料，保存功能将在下一里程碑接入")
+            .assertIsDisplayed()
     }
 }

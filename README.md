@@ -4,12 +4,12 @@ PocketArchive is an offline-first Android document and link organizer. The proje
 
 ## Current status
 
-The app has a launchable Compose shell with light/dark themes and an honest empty-library state. Import remains disabled until the next implementation milestone.
+The app has a launchable Compose shell with light/dark themes, a minimal UDF state flow, and a system document picker for PDF and image selection. Selected documents are not copied or persisted yet.
 
 ## Modules
 
 - `app`: Android application packaging and future composition root.
-- `feature-library`: future library screen and user-interaction boundary.
+- `feature-library`: library screen, UDF state, actions, and one-time effects.
 - `core-model`: platform-independent domain models shared by feature modules.
 
 The dependency direction is `app -> feature-library -> core-model`.
@@ -22,5 +22,3 @@ The dependency direction is `app -> feature-library -> core-model`.
 ./gradlew :feature-library:assembleDebugAndroidTest
 ./gradlew lintDebug
 ```
-
-Detailed milestone notes are stored in [`docs/learning`](docs/learning/index.md).

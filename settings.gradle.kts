@@ -17,5 +17,6 @@ dependencyResolutionManagement {
 rootProject.name = "PocketArchive"
 
 include(":app")
+include(":core-files")
 include(":core-model")
 include(":feature-library")

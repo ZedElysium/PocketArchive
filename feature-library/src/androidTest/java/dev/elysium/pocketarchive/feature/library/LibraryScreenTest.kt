@@ -32,7 +32,7 @@ class LibraryScreenTest {
         composeRule.onNodeWithText("资料库").assertIsDisplayed()
         composeRule.onNodeWithText("还没有资料").assertIsDisplayed()
         composeRule.onNodeWithText("导入资料").assertIsEnabled()
-        composeRule.onNodeWithText("当前可选择 PDF 或图片，文件暂不会保存").assertIsDisplayed()
+        composeRule.onNodeWithText("当前支持 PDF 或图片").assertIsDisplayed()
     }
 
     @Test
@@ -72,18 +72,57 @@ class LibraryScreenTest {
     }
 
     @Test
-    fun selectedDocument_showsPendingSaveState() {
+    fun importingDocument_disablesImportButtonAndShowsProgress() {
         composeRule.setContent {
             MaterialTheme {
                 LibraryScreen(
-                    state = LibraryUiState(hasSelectedDocument = true),
+                    state = LibraryUiState(
+                        isImportEnabled = false,
+                        importStatus = LibraryImportStatus.Importing,
+                    ),
                     onAction = {},
                 )
             }
         }
 
+        composeRule.onNodeWithText("正在导入").assertIsNotEnabled()
+        composeRule.onNodeWithText("正在复制文件，请稍候").assertIsDisplayed()
+    }
+
+    @Test
+    fun successfulImport_showsSavedDocumentName() {
+        composeRule.setContent {
+            MaterialTheme {
+                LibraryScreen(
+                    state = LibraryUiState(
+                        importStatus = LibraryImportStatus.Succeeded("guide.pdf"),
+                    ),
+                    onAction = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("资料已保存").assertIsDisplayed()
+        composeRule.onNodeWithText("已导入：guide.pdf").assertIsDisplayed()
         composeRule.onNodeWithText("导入资料").assertIsEnabled()
-        composeRule.onNodeWithText("已选择资料，保存功能将在下一里程碑接入")
-            .assertIsDisplayed()
+    }
+
+    @Test
+    fun failedImport_showsActionableMessage() {
+        composeRule.setContent {
+            MaterialTheme {
+                LibraryScreen(
+                    state = LibraryUiState(
+                        importStatus = LibraryImportStatus.Failed(
+                            LibraryImportError.ACCESS_DENIED,
+                        ),
+                    ),
+                    onAction = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("无法读取该文件，请重新选择").assertIsDisplayed()
+        composeRule.onNodeWithText("导入资料").assertIsEnabled()
     }
 }

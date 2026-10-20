@@ -45,7 +45,7 @@ fun LibraryScreen(
 
             EmptyLibraryContent(
                 importEnabled = state.isImportEnabled,
-                hasSelectedDocument = state.hasSelectedDocument,
+                importStatus = state.importStatus,
                 onImportClick = { onAction(LibraryAction.ImportClicked) },
                 modifier = Modifier
                     .widthIn(max = 420.dp)
@@ -61,7 +61,7 @@ fun LibraryScreen(
 @Composable
 private fun EmptyLibraryContent(
     importEnabled: Boolean,
-    hasSelectedDocument: Boolean,
+    importStatus: LibraryImportStatus,
     onImportClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -71,12 +71,20 @@ private fun EmptyLibraryContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = "还没有资料",
+            text = if (importStatus is LibraryImportStatus.Succeeded) {
+                "资料已保存"
+            } else {
+                "还没有资料"
+            },
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Text(
-            text = "以后可以把 PDF、图片和链接集中保存在这里。",
+            text = if (importStatus is LibraryImportStatus.Succeeded) {
+                "文件已复制到应用私有存储，资料列表将在后续里程碑接入。"
+            } else {
+                "可以把 PDF 和图片导入 PocketArchive 的私有存储。"
+            },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -85,13 +93,31 @@ private fun EmptyLibraryContent(
             onClick = onImportClick,
             enabled = importEnabled,
         ) {
-            Text("导入资料")
+            Text(
+                if (importStatus == LibraryImportStatus.Importing) {
+                    "正在导入"
+                } else {
+                    "导入资料"
+                },
+            )
         }
         Text(
-            text = when {
-                hasSelectedDocument -> "已选择资料，保存功能将在下一里程碑接入"
-                !importEnabled -> "正在打开系统文件选择器"
-                else -> "当前可选择 PDF 或图片，文件暂不会保存"
+            text = when (importStatus) {
+                LibraryImportStatus.Idle -> if (importEnabled) {
+                    "当前支持 PDF 或图片"
+                } else {
+                    "正在打开系统文件选择器"
+                }
+
+                LibraryImportStatus.Importing -> "正在复制文件，请稍候"
+                is LibraryImportStatus.Succeeded ->
+                    "已导入：${importStatus.displayName}"
+
+                is LibraryImportStatus.Failed -> when (importStatus.error) {
+                    LibraryImportError.UNSUPPORTED_DOCUMENT -> "不支持这种文件类型"
+                    LibraryImportError.ACCESS_DENIED -> "无法读取该文件，请重新选择"
+                    LibraryImportError.IMPORT_FAILED -> "导入失败，请重试"
+                }
             },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

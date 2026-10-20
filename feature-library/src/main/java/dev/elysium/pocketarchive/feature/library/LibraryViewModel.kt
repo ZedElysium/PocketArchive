@@ -2,6 +2,7 @@ package dev.elysium.pocketarchive.feature.library
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.elysium.pocketarchive.core.files.DocumentImporter
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor() : ViewModel() {
+class LibraryViewModel @Inject constructor(
+    private val documentImporter: DocumentImporter,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
 

@@ -33,6 +33,7 @@ value class StagedDocumentToken(val value: String) {
 
 data class StagedDocument(
     val token: StagedDocumentToken,
+    val destinationKey: PrivateDocumentKey,
     val sizeBytes: Long,
 ) {
     init {

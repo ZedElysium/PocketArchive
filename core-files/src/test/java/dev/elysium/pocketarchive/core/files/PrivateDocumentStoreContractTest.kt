@@ -16,6 +16,7 @@ class PrivateDocumentStoreContractTest {
         assertThrows(IllegalArgumentException::class.java) {
             StagedDocument(
                 token = StagedDocumentToken("stage-1"),
+                destinationKey = PrivateDocumentKey("items/document-1"),
                 sizeBytes = -1L,
             )
         }

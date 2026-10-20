@@ -45,6 +45,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core-files"))
     implementation(project(":feature-library"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

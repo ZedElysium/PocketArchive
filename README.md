@@ -14,8 +14,10 @@ PocketArchive 是一款离线优先的 Android 资料整理应用，用于管理
 - 与 Android 平台无关的资料领域模型，包括资料 ID、类型和基础元数据。
 - 独立的 Android 文件边界，可读取 `content://` 文档的名称、MIME 和可选大小。
 - 可测试的导入事务编排，明确暂存、提交、失败清理和取消清理规则。
+- 应用私有文件存储适配器，可将 ContentResolver 输入流暂存并原子提交到 `noBackupFilesDir`。
+- 由应用层 Hilt 依赖图组装文件读取、私有存储、ID、时钟和导入用例，并将导入边界注入资料库 ViewModel。
 
-导入事务目前使用存储接口和测试假对象验证，真实文件复制尚未实现，也未接入资料库 ViewModel。选择结果仍不会写入数据库或显示为资料列表。
+导入边界已经接入资料库 ViewModel，但当前里程碑刻意不调用它。选择结果仍不会触发导入、写入数据库或显示为资料列表。
 
 ## 模块结构 / Modules
 
@@ -24,7 +26,7 @@ PocketArchive 是一款离线优先的 Android 资料整理应用，用于管理
 - `feature-library`：资料库页面、UDF 状态、用户 Action 和一次性 Effect。
 - `core-model`：供其他模块共享的纯 Kotlin 领域模型。
 
-当前主要依赖方向：`app -> feature-library -> core-model`，`core-files -> core-model`。`core-files` 将在后续导入用例接入应用。
+当前主要依赖方向：`app -> feature-library -> core-files -> core-model`，同时 `app` 负责组装 `core-files` 的 Android 实现。
 
 `core-model` 不依赖 Android 或数据库框架，确保领域规则可以通过纯 JVM 测试独立验证。
 

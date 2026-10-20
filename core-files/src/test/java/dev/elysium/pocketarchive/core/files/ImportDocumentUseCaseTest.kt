@@ -237,6 +237,7 @@ class ImportDocumentUseCaseTest {
         val IMPORTED_AT: Instant = Instant.parse("2026-10-13T08:00:00Z")
         val STAGED_DOCUMENT = StagedDocument(
             token = StagedDocumentToken("stage-1"),
+            destinationKey = PrivateDocumentKey("documents/item-1.pdf"),
             sizeBytes = 321L,
         )
         val STORED_DOCUMENT = StoredDocument(

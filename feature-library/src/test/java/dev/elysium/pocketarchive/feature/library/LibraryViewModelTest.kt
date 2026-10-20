@@ -1,5 +1,7 @@
 package dev.elysium.pocketarchive.feature.library
 
+import dev.elysium.pocketarchive.core.files.DocumentImporter
+import dev.elysium.pocketarchive.core.files.ImportDocumentResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -10,7 +12,8 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class LibraryViewModelTest {
-    private val viewModel = LibraryViewModel()
+    private val documentImporter = RecordingDocumentImporter()
+    private val viewModel = LibraryViewModel(documentImporter)
 
     @Test
     fun initialState_matchesCurrentLibraryCapability() {
@@ -82,6 +85,7 @@ class LibraryViewModelTest {
             ),
             viewModel.uiState.value,
         )
+        assertEquals(emptyList<String>(), documentImporter.importedUris)
     }
 
     @Test
@@ -102,5 +106,15 @@ class LibraryViewModelTest {
             ),
             viewModel.uiState.value,
         )
+        assertEquals(emptyList<String>(), documentImporter.importedUris)
+    }
+
+    private class RecordingDocumentImporter : DocumentImporter {
+        val importedUris = mutableListOf<String>()
+
+        override suspend fun import(documentUri: String): ImportDocumentResult {
+            importedUris += documentUri
+            error("Import must not start during the dependency-injection milestone")
+        }
     }
 }

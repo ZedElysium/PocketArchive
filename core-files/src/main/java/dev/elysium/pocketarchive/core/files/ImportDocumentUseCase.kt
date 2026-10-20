@@ -11,8 +11,8 @@ class ImportDocumentUseCase(
     private val privateDocumentStore: PrivateDocumentStore,
     private val archiveItemIdGenerator: ArchiveItemIdGenerator,
     private val clock: Clock,
-) {
-    suspend operator fun invoke(documentUri: String): ImportDocumentResult {
+) : DocumentImporter {
+    override suspend fun import(documentUri: String): ImportDocumentResult {
         val metadata = when (val result = readMetadata(documentUri)) {
             is MetadataStepResult.Success -> result.metadata
             is MetadataStepResult.Failure -> return ImportDocumentResult.Failure(result.reason)
@@ -68,6 +68,9 @@ class ImportDocumentUseCase(
             )
         }
     }
+
+    suspend operator fun invoke(documentUri: String): ImportDocumentResult =
+        import(documentUri)
 
     private suspend fun readMetadata(documentUri: String): MetadataStepResult = try {
         when (val result = metadataReader.read(documentUri)) {

@@ -6,6 +6,7 @@ activity-compose = "1.9.3"
 coroutines = "1.9.0"
 hilt = "2.53.1"
 lifecycle = "2.8.7"
+room = "2.8.5"
 junit = "4.13.2"
 androidx-test-junit = "1.1.5"
 androidx-test-runner = "1.5.2"
@@ -27,7 +28,10 @@ hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hil
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]

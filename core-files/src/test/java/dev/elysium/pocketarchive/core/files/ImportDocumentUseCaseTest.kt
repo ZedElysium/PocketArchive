@@ -230,6 +230,10 @@ class ImportDocumentUseCaseTest {
             operations += "discard"
             discardFailure?.let { throw it }
         }
+
+        override suspend fun delete(storedDocument: StoredDocument) {
+            operations += "delete"
+        }
     }
 
     private companion object {

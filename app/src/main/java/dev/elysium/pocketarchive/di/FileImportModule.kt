@@ -6,6 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.elysium.pocketarchive.core.data.ArchiveRepository
+import dev.elysium.pocketarchive.core.data.PersistingDocumentImporter
 import dev.elysium.pocketarchive.core.files.AppPrivateDocumentStore
 import dev.elysium.pocketarchive.core.files.ArchiveItemIdGenerator
 import dev.elysium.pocketarchive.core.files.ContentResolverDocumentMetadataReader
@@ -43,15 +45,27 @@ object FileImportModule {
 
     @Provides
     @Singleton
-    fun provideDocumentImporter(
+    fun provideFileDocumentImporter(
         metadataReader: DocumentMetadataReader,
         privateDocumentStore: PrivateDocumentStore,
         archiveItemIdGenerator: ArchiveItemIdGenerator,
         clock: Clock,
-    ): DocumentImporter = ImportDocumentUseCase(
+    ): ImportDocumentUseCase = ImportDocumentUseCase(
         metadataReader = metadataReader,
         privateDocumentStore = privateDocumentStore,
         archiveItemIdGenerator = archiveItemIdGenerator,
         clock = clock,
+    )
+
+    @Provides
+    @Singleton
+    fun provideDocumentImporter(
+        fileImporter: ImportDocumentUseCase,
+        archiveRepository: ArchiveRepository,
+        privateDocumentStore: PrivateDocumentStore,
+    ): DocumentImporter = PersistingDocumentImporter(
+        fileImporter = fileImporter,
+        archiveRepository = archiveRepository,
+        privateDocumentStore = privateDocumentStore,
     )
 }

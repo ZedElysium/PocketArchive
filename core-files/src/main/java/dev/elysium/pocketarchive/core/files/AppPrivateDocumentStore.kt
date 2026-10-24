@@ -116,6 +116,16 @@ class AppPrivateDocumentStore internal constructor(
         }
     }
 
+    override suspend fun delete(storedDocument: StoredDocument) {
+        withContext(ioDispatcher) {
+            val storedFile = destinationFile(storedDocument.key)
+            if (storedFile.exists() && !storedFile.isFile) {
+                throw IOException("Stored document is not a regular file")
+            }
+            storedFile.deleteFailure()?.let { throw it }
+        }
+    }
+
     private val stagingDirectory: File
         get() = File(rootDirectory, STAGING_DIRECTORY_NAME)
 

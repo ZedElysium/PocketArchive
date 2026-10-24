@@ -23,4 +23,6 @@ sealed interface ImportDocumentFailure {
     data object CopyFailed : ImportDocumentFailure
     data object FinalizationFailed : ImportDocumentFailure
     data object CleanupFailed : ImportDocumentFailure
+    data object PersistenceFailed : ImportDocumentFailure
+    data object PersistenceCleanupFailed : ImportDocumentFailure
 }

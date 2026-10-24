@@ -7,6 +7,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.elysium.pocketarchive.core.data.ArchiveRepository
+import dev.elysium.pocketarchive.core.data.RoomArchiveRepository
 import dev.elysium.pocketarchive.core.database.ArchiveItemDao
 import dev.elysium.pocketarchive.core.database.PocketArchiveDatabase
 import javax.inject.Singleton
@@ -29,4 +31,10 @@ object DatabaseModule {
     fun provideArchiveItemDao(
         database: PocketArchiveDatabase,
     ): ArchiveItemDao = database.archiveItemDao()
+
+    @Provides
+    @Singleton
+    fun provideArchiveRepository(
+        archiveItemDao: ArchiveItemDao,
+    ): ArchiveRepository = RoomArchiveRepository(archiveItemDao)
 }

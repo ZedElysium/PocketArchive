@@ -22,6 +22,9 @@ interface PrivateDocumentStore {
 
     /** Removes a temporary file and may be called while its parent import is cancelled. */
     suspend fun discard(stagedDocument: StagedDocument)
+
+    /** Removes a committed app-private file when a later persistence step cannot complete. */
+    suspend fun delete(storedDocument: StoredDocument)
 }
 
 @JvmInline

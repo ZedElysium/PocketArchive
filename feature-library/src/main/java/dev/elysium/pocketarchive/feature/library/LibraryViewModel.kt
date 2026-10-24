@@ -113,6 +113,8 @@ class LibraryViewModel @Inject constructor(
         ImportDocumentFailure.CopyFailed,
         ImportDocumentFailure.FinalizationFailed,
         ImportDocumentFailure.CleanupFailed,
+        ImportDocumentFailure.PersistenceFailed,
+        ImportDocumentFailure.PersistenceCleanupFailed,
         -> LibraryImportError.IMPORT_FAILED
     }
 }

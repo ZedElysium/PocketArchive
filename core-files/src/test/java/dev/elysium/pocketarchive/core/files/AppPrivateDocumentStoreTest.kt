@@ -82,6 +82,47 @@ class AppPrivateDocumentStoreTest {
     }
 
     @Test
+    fun delete_removesCommittedContent() = runBlocking {
+        val store = storeReturning(CONTENT)
+        val stagedDocument = store.stage(DOCUMENT_URI, ARCHIVE_ITEM_ID, METADATA)
+        val storedDocument = store.commit(stagedDocument)
+
+        store.delete(storedDocument)
+
+        assertFalse(destinationFile(stagedDocument).exists())
+    }
+
+    @Test
+    fun delete_isIdempotentWhenCommittedContentIsMissing() = runBlocking {
+        val store = storeReturning(CONTENT)
+        val missingDocument = StoredDocument(
+            key = PrivateDocumentKey(validPrivateKey()),
+            sizeBytes = 0L,
+        )
+
+        store.delete(missingDocument)
+        store.delete(missingDocument)
+    }
+
+    @Test
+    fun forgedStoredDocumentKey_cannotEscapePrivateRoot() {
+        val outsideFile = File(rootDirectory.parentFile, "outside-stored").apply {
+            writeText("keep")
+        }
+        val forgedDocument = StoredDocument(
+            key = PrivateDocumentKey("../outside-stored"),
+            sizeBytes = outsideFile.length(),
+        )
+        val store = storeReturning(CONTENT)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { store.delete(forgedDocument) }
+        }
+
+        assertEquals("keep", outsideFile.readText())
+    }
+
+    @Test
     fun inputFailure_removesPartialStagedFile() {
         val store = storeOpening { FailingInputStream() }
 

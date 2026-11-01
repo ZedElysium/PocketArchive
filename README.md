@@ -20,18 +20,20 @@ PocketArchive 是一款离线优先的 Android 资料整理应用，用于管理
 - 独立的 Room 数据库模块已定义资料表结构、插入与查询契约，并导出版本化 schema。
 - 数据层在文件导入成功后写入 Room；若数据库写入失败，会补偿删除刚提交的私有文件。
 - 应用层通过 Hilt 组装文件导入、Repository、单例数据库和 DAO，关键数据行为由 JVM 测试验证。
+- 资料库订阅 Room 的资料流，区分加载、空列表、真实列表和读取失败，支持重新加载。
 
-选择 PDF 或图片后，文件会复制到应用私有存储并建立数据库记录，页面仍只显示本次结果。资料列表尚未接入 UI；下一阶段会订阅持久化记录，使导入结果在重启后重新显示。
+选择 PDF 或图片后，文件会复制到应用私有存储并建立数据库记录，资料列表随数据库更新。列表显示文件名、类型和大小，按导入时间倒序排列；重新启动应用后会从本地数据库恢复。
 
 ## 模块结构 / Modules
 
 - `app`：Android 应用入口、依赖组装和系统能力接入。
+- `core-data`：资料 Repository、持久化导入编排与失败补偿。
 - `core-database`：Room 资料实体、DAO 契约和数据库映射。
 - `core-files`：系统文档 URI、ContentResolver 和文件所有权边界。
 - `feature-library`：资料库页面、UDF 状态、用户 Action 和一次性 Effect。
 - `core-model`：供其他模块共享的纯 Kotlin 领域模型。
 
-当前主要依赖方向：`app -> feature-library -> core-files -> core-model`，`core-database -> core-model`。`app` 负责组装 Android 生产实现。
+当前主要依赖方向：`feature-library -> core-data -> core-files / core-database -> core-model`。`app` 负责组装 Android 生产实现。
 
 `core-model` 不依赖 Android 或数据库框架，确保领域规则可以通过纯 JVM 测试独立验证。
 
@@ -43,11 +45,12 @@ PocketArchive 是一款离线优先的 Android 资料整理应用，用于管理
 ./gradlew assembleDebug
 ./gradlew testDebugUnitTest
 ./gradlew :feature-library:assembleDebugAndroidTest
+./gradlew :feature-library:connectedDebugAndroidTest # 需要运行中的模拟器或设备
 ./gradlew lintDebug
 ```
 
 ## 当前边界 / Current scope
 
 - 离线优先，不要求登录或联网。
-- 暂未实现数据库持久化、资料列表和搜索。
+- 已支持本地持久化与资料列表，暂未实现文档打开、删除和搜索。
 - 暂不加入 AI、云同步和账号体系。

@@ -1,5 +1,7 @@
 package dev.elysium.pocketarchive.feature.library
 
+import androidx.lifecycle.ViewModelStore
+import dev.elysium.pocketarchive.core.data.ArchiveRepository
 import dev.elysium.pocketarchive.core.files.DocumentImporter
 import dev.elysium.pocketarchive.core.files.DocumentMetadataFailureReason
 import dev.elysium.pocketarchive.core.files.ImportDocumentFailure
@@ -13,6 +15,9 @@ import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
@@ -30,7 +35,104 @@ class LibraryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val documentImporter = RecordingDocumentImporter()
-    private val viewModel = LibraryViewModel(documentImporter)
+    private val repository = RecordingArchiveRepository()
+    private val viewModel by lazy { LibraryViewModel(documentImporter, repository) }
+
+    @Test
+    fun emptyDatabase_finishesLoadingWithoutAddingItems() = runTest {
+        val model = viewModel
+        repository.items.emit(emptyList())
+        runCurrent()
+
+        assertEquals(LibraryLoadStatus.Ready, model.uiState.value.loadStatus)
+        assertEquals(emptyList<ArchiveItem>(), model.uiState.value.items)
+    }
+
+    @Test
+    fun databaseChanges_updateItemsAndPreserveImportState() = runTest {
+        val model = viewModel
+        model.onAction(LibraryAction.ImportClicked)
+        repository.items.emit(listOf(SUCCESS_RESULT.archiveItem))
+        runCurrent()
+
+        assertEquals(listOf(SUCCESS_RESULT.archiveItem), model.uiState.value.items)
+        assertFalse(model.uiState.value.isImportEnabled)
+        assertEquals(LibraryLoadStatus.Ready, model.uiState.value.loadStatus)
+
+        repository.items.emit(emptyList())
+        runCurrent()
+        assertEquals(emptyList<ArchiveItem>(), model.uiState.value.items)
+    }
+
+    @Test
+    fun successfulImport_doesNotInventItemsOutsideDatabase() = runTest {
+        viewModel.onAction(LibraryAction.DocumentPickerFinished(DOCUMENT_URI))
+        advanceUntilIdle()
+
+        assertEquals(emptyList<ArchiveItem>(), viewModel.uiState.value.items)
+        assertEquals(LibraryImportStatus.Succeeded("guide.pdf"), viewModel.uiState.value.importStatus)
+    }
+
+    @Test
+    fun newViewModel_restoresExistingRepositoryItems() = runTest {
+        repository.items.emit(listOf(SUCCESS_RESULT.archiveItem))
+        val first = viewModel
+        runCurrent()
+        val recreated = LibraryViewModel(documentImporter, repository)
+        runCurrent()
+
+        assertEquals(first.uiState.value.items, recreated.uiState.value.items)
+        assertEquals(listOf(SUCCESS_RESULT.archiveItem), recreated.uiState.value.items)
+        assertEquals(LibraryImportStatus.Idle, recreated.uiState.value.importStatus)
+    }
+
+    @Test
+    fun databaseFailure_canRetryAndLoadItems() = runTest {
+        repository.failure = IllegalStateException("read failed")
+        val model = viewModel
+        runCurrent()
+        assertEquals(LibraryLoadStatus.Failed, model.uiState.value.loadStatus)
+
+        repository.failure = null
+        repository.items.emit(listOf(SUCCESS_RESULT.archiveItem))
+        model.onAction(LibraryAction.RetryLoading)
+        assertEquals(LibraryLoadStatus.Loading, model.uiState.value.loadStatus)
+        runCurrent()
+
+        assertEquals(LibraryLoadStatus.Ready, model.uiState.value.loadStatus)
+        assertEquals(listOf(SUCCESS_RESULT.archiveItem), model.uiState.value.items)
+    }
+
+    @Test
+    fun clearedViewModel_stopsObservingRepository() = runTest {
+        val store = ViewModelStore()
+        store.put("library", viewModel)
+        runCurrent()
+        assertEquals(1, repository.items.subscriptionCount.value)
+
+        store.clear()
+        runCurrent()
+
+        assertEquals(0, repository.items.subscriptionCount.value)
+    }
+
+    @Test
+    fun failedImport_preservesLoadedItems() = runTest {
+        val model = viewModel
+        repository.items.emit(listOf(SUCCESS_RESULT.archiveItem))
+        runCurrent()
+        documentImporter.result = failure(ImportDocumentFailure.PersistenceFailed)
+
+        model.onAction(LibraryAction.DocumentPickerFinished(DOCUMENT_URI))
+        advanceUntilIdle()
+
+        assertEquals(listOf(SUCCESS_RESULT.archiveItem), model.uiState.value.items)
+        assertEquals(LibraryLoadStatus.Ready, model.uiState.value.loadStatus)
+        assertEquals(
+            LibraryImportStatus.Failed(LibraryImportError.IMPORT_FAILED),
+            model.uiState.value.importStatus,
+        )
+    }
 
     @Test
     fun initialState_matchesCurrentLibraryCapability() {
@@ -201,6 +303,19 @@ class LibraryViewModelTest {
             gate?.await()
             exception?.let { throw it }
             return result
+        }
+    }
+
+    private class RecordingArchiveRepository : ArchiveRepository {
+        val items = MutableSharedFlow<List<ArchiveItem>>(replay = 1)
+        var failure: Exception? = null
+
+        override suspend fun addImportedItem(archiveItem: ArchiveItem, storedDocument: StoredDocument) =
+            error("ViewModel must import through DocumentImporter")
+
+        override fun observeAll(): Flow<List<ArchiveItem>> = flow {
+            failure?.let { throw it }
+            items.collect { emit(it) }
         }
     }
 

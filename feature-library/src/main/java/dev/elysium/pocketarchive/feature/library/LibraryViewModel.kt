@@ -3,12 +3,14 @@ package dev.elysium.pocketarchive.feature.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.elysium.pocketarchive.core.data.ArchiveRepository
 import dev.elysium.pocketarchive.core.files.DocumentImporter
 import dev.elysium.pocketarchive.core.files.DocumentMetadataFailureReason
 import dev.elysium.pocketarchive.core.files.ImportDocumentFailure
 import dev.elysium.pocketarchive.core.files.ImportDocumentResult
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +23,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val documentImporter: DocumentImporter,
+    private val archiveRepository: ArchiveRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
@@ -28,10 +31,37 @@ class LibraryViewModel @Inject constructor(
     private val _effects = Channel<LibraryEffect>(capacity = Channel.BUFFERED)
     val effects: Flow<LibraryEffect> = _effects.receiveAsFlow()
 
+    private var libraryCollection: Job? = null
+
+    init {
+        observeLibrary()
+    }
+
     fun onAction(action: LibraryAction) {
         when (action) {
             LibraryAction.ImportClicked -> openDocumentPicker()
+            LibraryAction.RetryLoading -> if (_uiState.value.loadStatus == LibraryLoadStatus.Failed) {
+                observeLibrary()
+            }
             is LibraryAction.DocumentPickerFinished -> finishDocumentPicker(action.documentUri)
+        }
+    }
+
+    private fun observeLibrary() {
+        libraryCollection?.cancel()
+        _uiState.update { it.copy(loadStatus = LibraryLoadStatus.Loading) }
+        libraryCollection = viewModelScope.launch {
+            try {
+                archiveRepository.observeAll().collect { items ->
+                    _uiState.update {
+                        it.copy(items = items.toList(), loadStatus = LibraryLoadStatus.Ready)
+                    }
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                _uiState.update { it.copy(loadStatus = LibraryLoadStatus.Failed) }
+            }
         }
     }
 

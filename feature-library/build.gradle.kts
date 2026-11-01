@@ -34,6 +34,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core-data"))
     implementation(project(":core-files"))
     implementation(project(":core-model"))
     implementation(platform(libs.androidx.compose.bom))
